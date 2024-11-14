@@ -1,0 +1,17 @@
+.checklist {
+    list-style: none; /* Menghapus bullets default */
+    padding: 0; /* Menghapus padding default */
+  }
+  
+  .checklist li {
+    display: flex; /* Mengatur item dalam baris */
+    align-items: center; /* Menjaga ikon dan teks sejajar */
+    margin-bottom: 10px; /* Memberi jarak antar item */
+    font-size: 16px; /* Ukuran font untuk teks */
+  }
+  
+  .checklist li i {
+    margin-right: 10px; /* Memberi jarak antara ikon dan teks */
+    font-size: 20px; /* Ukuran ikon */
+  }
+  
