@@ -7,53 +7,34 @@ function QRLogTrainer() {
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState('');
-  const [pingTime, setPingTime] = useState(null);
 
-  // Cek kualitas koneksi internet
-  const checkConnection = () => {
-    if (navigator.connection) {
-      const connectionType = navigator.connection.effectiveType; // "4g", "3g", "2g", "slow-2g", etc.
-      setConnectionStatus(`Connection Type: ${connectionType}`);
-    } else {
-      setConnectionStatus('Connection Type: Unknown');
-    }
-  };
-
-  // Fungsi untuk mengukur kecepatan internet menggunakan ping
-  const measurePing = async () => {
-    const start = Date.now();
-    try {
-      const response = await fetch('https://thekingsgym.id/api/ping', { method: 'GET' });
-      const end = Date.now();
-      const time = end - start; // Mengukur waktu round trip ping (dalam milidetik)
-      setPingTime(time);
-    } catch (error) {
-      setPingTime(null); // Jika ada error (misal tidak ada koneksi), set waktu ke null
-    }
-  };
-
-  useEffect(() => {
-    // Cek koneksi saat halaman dimuat
-    checkConnection();
-    measurePing();
-  }, []);
-
+  // Format nomor telepon dari input QR code
   const formatPhoneNumber = (input) => {
-    const phoneMatch = input.match(/\+62\d+/);
-    return phoneMatch ? phoneMatch[0] : '';
+    const phoneMatch = input.match(/KING-\d{3}-(\d+)/); // Cocokkan format "KING-xxx-<nomor>"
+    if (phoneMatch) {
+      return '+' + phoneMatch[1]; // Tambahkan "+" di depan nomor
+    }
+    return ''; // Jika tidak cocok, kembalikan string kosong
   };
 
+  // Tangani perubahan input
   const handlePhoneChange = async (e) => {
-    const inputPhone = e.target.value;
-    const formattedPhone = formatPhoneNumber(inputPhone);
-    setPhone(formattedPhone);
+    const inputPhone = e.target.value; // Data mentah dari QR scanner
+    const formattedPhone = formatPhoneNumber(inputPhone); // Format data
+    setPhone(formattedPhone); // Set ke state
 
+    // Jika nomor dimulai dengan +62, proses nomor
     if (formattedPhone && formattedPhone.startsWith('+62')) {
       await processPhone(formattedPhone);
     }
   };
 
+  // Fokuskan field input saat halaman dimuat
+  useEffect(() => {
+    document.getElementById('phone').focus();
+  }, []);
+
+  // Proses nomor telepon
   const processPhone = async (formattedPhone) => {
     setLoading(true);
     setProgress(25);
@@ -90,8 +71,13 @@ function QRLogTrainer() {
 
     setProgress(100);
     setLoading(false);
+
+    // Kosongkan input dan fokus kembali
+    setPhone(''); // Kosongkan field
+    document.getElementById('phone').focus(); // Fokuskan kembali field input
   };
 
+  // Hindari form submit dengan menekan Enter
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -121,18 +107,6 @@ function QRLogTrainer() {
               {loading ? 'Processing...' : 'Submit'}
             </Button>
           </Form>
-
-          {connectionStatus && <div className="mt-3">Connection Status: {connectionStatus}</div>}
-
-          {pingTime !== null && (
-            <div className="mt-3">
-              {pingTime < 100
-                ? 'Good internet speed'
-                : pingTime < 200
-                ? 'Average internet speed'
-                : 'Poor internet speed'} (Ping: {pingTime} ms)
-            </div>
-          )}
 
           {loading && (
             <>
