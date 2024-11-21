@@ -8,20 +8,21 @@ function QRLogTrainer() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Format nomor telepon dari input QR code
+  // Format nomor telepon dari input scanner
   const formatPhoneNumber = (input) => {
-    const phoneMatch = input.match(/KING-\d{3}-(\d+)/); // Cocokkan format "KING-xxx-<nomor>"
-    if (phoneMatch) {
-      return '+' + phoneMatch[1]; // Tambahkan "+" di depan nomor
+    // Jika input dimulai dengan "-62", ganti dengan "+62"
+    if (input.startsWith('-62')) {
+      return input.replace('-62', '+62');
     }
-    return ''; // Jika tidak cocok, kembalikan string kosong
+    // Tambahan validasi atau formatting lainnya bisa dilakukan di sini
+    return input;
   };
 
   // Tangani perubahan input
   const handlePhoneChange = async (e) => {
     const inputPhone = e.target.value; // Data mentah dari QR scanner
     const formattedPhone = formatPhoneNumber(inputPhone); // Format data
-    setPhone(formattedPhone); // Set ke state
+    setPhone(formattedPhone); // Tampilkan data yang telah diformat di input field
 
     // Jika nomor dimulai dengan +62, proses nomor
     if (formattedPhone && formattedPhone.startsWith('+62')) {
@@ -32,6 +33,18 @@ function QRLogTrainer() {
   // Fokuskan field input saat halaman dimuat
   useEffect(() => {
     document.getElementById('phone').focus();
+
+    // Mencegah browser shortcut saat scanner mengirimkan kode tambahan
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault(); // Blokir shortcut browser seperti Ctrl+D atau Ctrl+S
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   // Proses nomor telepon
@@ -71,16 +84,12 @@ function QRLogTrainer() {
 
     setProgress(100);
     setLoading(false);
-
-    // Kosongkan input dan fokus kembali
-    setPhone(''); // Kosongkan field
-    document.getElementById('phone').focus(); // Fokuskan kembali field input
   };
 
   // Hindari form submit dengan menekan Enter
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
+      e.preventDefault(); // Cegah Enter memicu aksi submit atau shortcut browser
     }
   };
 
